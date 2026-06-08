@@ -1,0 +1,7 @@
+# ローカル開発・デザイン用のスクラッチ（公開不要）
+server.js
+mock.html
+
+# OS
+.DS_Store
+Thumbs.db

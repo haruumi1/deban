@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>出番｜発表会の出演順を、10秒で。</title>
+<meta name="description" content="演目と出演者を貼るだけ。掛け持ちの人が連続しないよう、早着替えの間隔を空けて出演順を自動で組みます。登録不要・ブラウザ内で計算。">
+<meta property="og:title" content="出番｜発表会の出演順を、10秒で。">
+<meta property="og:description" content="演目と出演者を貼るだけ。掛け持ちの早着替えを避けて出演順を自動で組みます。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://haruumi1.github.io/deban/">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#fafafb; --ink:#16161a; --ink-2:#3f3f46; --sub:#8a8a94;
+    --line:#ececf0; --line-2:#e2e2e8; --accent:#e0457b; --accent-soft:#fdeef3; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",sans-serif;
+    line-height:1.65; -webkit-font-smoothing:antialiased; letter-spacing:.01em;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px 96px;}
+  .topbar{max-width:640px;margin:0 auto;padding:20px 20px 0;display:flex;align-items:center;justify-content:space-between;}
+  .brand{font-size:16px;font-weight:800;letter-spacing:-.01em;}
+  .brand .dot{color:var(--accent);}
+  .topbar .nav{font-size:13px;color:var(--sub);font-weight:600;}
+
+  .hero{max-width:640px;margin:0 auto;padding:40px 20px 8px;}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--accent);text-transform:uppercase;margin-bottom:14px;}
+  .hero h1{margin:0;font-size:34px;line-height:1.25;font-weight:800;letter-spacing:-.02em;}
+  .hero p{margin:14px 0 0;font-size:15.5px;color:var(--ink-2);max-width:30em;}
+  .trust{display:inline-flex;align-items:center;gap:7px;margin-top:20px;padding:6px 13px;border:1px solid var(--line-2);border-radius:999px;font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--bg-soft);}
+  .trust .led{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.15);}
+
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:22px 20px;margin-top:20px;}
+  .card h2{margin:0 0 3px;font-size:15px;font-weight:800;display:flex;align-items:center;gap:10px;letter-spacing:-.01em;}
+  .num{width:23px;height:23px;border-radius:50%;border:1.5px solid var(--ink);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  .hint{font-size:13px;color:var(--sub);margin:0 0 14px;padding-left:33px;}
+
+  .tabs{display:inline-flex;gap:2px;background:var(--bg-soft);border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:14px;}
+  .tab{padding:7px 16px;border-radius:7px;font-size:13px;font-weight:700;color:var(--sub);cursor:pointer;border:none;background:transparent;}
+  .tab.on{background:var(--ink);color:#fff;}
+
+  textarea{width:100%;min-height:188px;resize:vertical;border:1px solid var(--line-2);border-radius:11px;padding:14px;font-family:ui-monospace,"SFMono-Regular",Consolas,"Hiragino Kaku Gothic ProN",monospace;font-size:13.5px;line-height:1.85;color:var(--ink);background:var(--bg);}
+  textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(22,22,26,.06);}
+
+  .grid-in{display:none;}
+  .grid-in table{width:100%;border-collapse:collapse;font-size:13px;}
+  .grid-in th{font-size:11.5px;color:var(--sub);font-weight:700;text-align:left;padding:4px 6px;letter-spacing:.02em;}
+  .grid-in td{padding:3px 4px;}
+  .grid-in input{width:100%;border:1px solid var(--line-2);border-radius:9px;padding:9px 11px;font-size:13px;background:var(--bg);}
+  .grid-in input:focus{outline:none;border-color:var(--ink);}
+  .addrow{margin-top:10px;font-size:12.5px;color:var(--accent);font-weight:700;background:none;border:none;cursor:pointer;padding:4px 0;}
+
+  .settings{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;}
+  .field{flex:1;min-width:150px;}
+  .field label{display:block;font-size:12.5px;color:var(--ink-2);font-weight:700;margin-bottom:6px;}
+  .field .sub{font-weight:500;color:var(--sub);}
+  .stepper{display:flex;align-items:center;border:1px solid var(--line-2);border-radius:11px;overflow:hidden;background:var(--bg);}
+  .stepper button{width:40px;height:44px;border:none;background:var(--bg-soft);font-size:19px;color:var(--ink);cursor:pointer;}
+  .stepper button:hover{background:#f0f0f3;}
+  .stepper input{flex:1;border:none;text-align:center;font-size:16px;font-weight:800;background:transparent;width:100%;}
+  .stepper input:focus{outline:none;}
+  .field input.time{width:100%;border:1px solid var(--line-2);border-radius:11px;padding:12px 13px;font-size:15px;font-weight:700;}
+  .field input.time:focus{outline:none;border-color:var(--ink);}
+
+  details.adv{margin-top:14px;border-top:1px solid var(--line);padding-top:14px;}
+  details.adv summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--ink-2);list-style:none;display:flex;align-items:center;gap:8px;}
+  details.adv summary::-webkit-details-marker{display:none;}
+  details.adv summary::before{content:"＋";color:var(--accent);font-weight:800;}
+  details.adv[open] summary::before{content:"−";}
+  .adv-body{margin-top:13px;}
+  .adv-body .lab{font-size:12.5px;color:var(--ink-2);font-weight:700;margin-bottom:6px;}
+  .frule{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:8px;font-size:13px;color:var(--ink-2);}
+  .fx-act{flex:1;min-width:130px;border:1px solid var(--line-2);border-radius:8px;padding:8px 10px;font-size:13px;}
+  .fx-pos{width:58px;border:1px solid var(--line-2);border-radius:8px;padding:7px 8px;font-size:14px;font-weight:700;text-align:center;}
+  .fx-act:focus,.fx-pos:focus{outline:none;border-color:var(--ink);}
+  .frule .del{background:none;border:none;color:var(--sub);cursor:pointer;font-size:16px;padding:2px 4px;}
+  .addrule{font-size:12.5px;color:var(--accent);font-weight:700;background:none;border:none;cursor:pointer;padding:6px 0;}
+  .pin{display:flex;gap:10px;flex-wrap:wrap;}
+  .pin .field{min-width:160px;}
+
+  .run{width:100%;margin-top:22px;padding:16px;border:none;border-radius:12px;background:var(--ink);color:#fff;font-size:16px;font-weight:800;cursor:pointer;letter-spacing:.02em;transition:transform .05s ease;}
+  .run:hover{background:#000;}
+  .run:active{transform:translateY(1px);}
+
+  #result{display:none;}
+  .summary{display:flex;align-items:baseline;gap:8px;margin:2px 0 8px;font-size:14px;color:var(--ink-2);flex-wrap:wrap;}
+  .summary b{color:var(--ink);font-weight:800;}
+  .summary .ok{color:#15803d;font-weight:800;}
+  .summary .warn{color:#b45309;font-weight:800;}
+  .note{font-size:13px;line-height:1.7;border-radius:11px;padding:11px 13px;margin:10px 0 6px;}
+  .note.relax{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;}
+  .note.cushion{background:#fef2f4;border:1px solid #fbcfe0;color:#9d174d;}
+  .note b{font-weight:800;}
+
+  .prog{margin-top:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  .row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);}
+  .row:last-child{border-bottom:none;}
+  .row .no{width:30px;flex:none;text-align:center;font-size:15px;font-weight:800;color:var(--accent);}
+  .row .body{flex:1;min-width:0;}
+  .row .actname{font-size:14.5px;font-weight:700;color:var(--ink);overflow-wrap:anywhere;}
+  .row .perf{margin-top:3px;display:flex;flex-wrap:wrap;gap:5px;}
+  .row .clock{flex:none;font-size:12px;color:var(--sub);font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
+  .chip{display:inline-block;padding:2px 9px;border-radius:7px;font-size:12px;font-weight:700;line-height:1.4;}
+  .chip.multi{box-shadow:inset 0 0 0 1.5px currentColor;}
+  .interm{padding:10px 14px;background:var(--bg-soft);font-size:12.5px;font-weight:800;color:var(--ink-2);text-align:center;letter-spacing:.04em;border-bottom:1px solid var(--line);}
+
+  .kakemochi{margin-top:16px;border-top:1px dashed var(--line-2);padding-top:14px;}
+  .kakemochi h3{margin:0 0 9px;font-size:12.5px;font-weight:800;color:var(--ink-2);letter-spacing:.02em;}
+  .km{font-size:12.5px;color:var(--ink-2);line-height:1.9;}
+  .km .who{font-weight:800;color:var(--ink);}
+  .km .seq{color:var(--sub);font-variant-numeric:tabular-nums;}
+  .km .tight{color:#b45309;font-weight:800;}
+
+  .copytable{width:100%;margin-top:18px;padding:14px;border-radius:12px;border:1.5px solid var(--ink);background:var(--bg);color:var(--ink);font-size:14.5px;font-weight:800;cursor:pointer;}
+  .copytable:hover{background:var(--bg-soft);}
+  .share{display:flex;gap:9px;margin-top:9px;}
+  .share button{flex:1;padding:13px 8px;border-radius:11px;border:1px solid var(--line-2);background:var(--bg);font-size:13px;font-weight:700;color:var(--ink);cursor:pointer;}
+  .share button:hover{background:var(--bg-soft);}
+  .share button.line{background:#06c755;border-color:#06c755;color:#fff;}
+  .share button.line:hover{background:#05b54d;}
+
+  footer{text-align:center;margin-top:34px;font-size:11.5px;color:#b0b0ba;line-height:1.9;}
+  footer .nopii{color:#3f3f46;font-weight:700;}
+
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-size:13.5px;font-weight:700;opacity:0;pointer-events:none;transition:all .25s ease;z-index:50;max-width:90vw;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.2);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .err{color:#b91c1c;font-size:13px;font-weight:700;margin-top:12px;display:none;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">出番<span class="dot">.</span></div>
+  <div class="nav">登録不要・無料</div>
+</div>
+
+<div class="hero">
+  <div class="eyebrow">ピアノ・ダンス・バレエの発表会に</div>
+  <h1>発表会の出演順を、<br>10秒で。</h1>
+  <p>演目と出演者を貼るだけ。掛け持ちの人が連続しないよう、早着替えの間隔を空けて出演順を自動で組みます。</p>
+  <div class="trust"><span class="led"></span>登録不要・名前は送信されません</div>
+</div>
+
+<div class="wrap">
+
+  <div class="card">
+    <h2><span class="num">1</span>演目と出演者を入れる</h2>
+    <p class="hint">1行に1演目「演目名: 出演者」。並べたい順（学年順など）でOK。掛け持ちの被りだけ自動で直します。所要時間は末尾に <b>[3:00]</b> と書けます。</p>
+
+    <div class="tabs">
+      <button class="tab on" id="tabPaste" onclick="switchTab('paste')">貼り付け</button>
+      <button class="tab" id="tabGrid" onclick="switchTab('grid')">表で入力</button>
+    </div>
+
+    <textarea id="paste" onblur="refreshActOptions()">きらきら星: ひなた
+メヌエット: そうま
+となりのトトロ(連弾): ひなた りく
+エリーゼのために: あおい
+ねこふんじゃった: りく
+トルコ行進曲: そうま
+アンダー・ザ・シー(連弾): あおい ひなた
+乙女の祈り: ゆい
+カノン(連弾): りく そうま
+情熱大陸: あおい</textarea>
+
+    <div class="grid-in" id="gridIn">
+      <table>
+        <thead><tr><th style="width:44%">演目名</th><th>出演者（スペース区切り）</th></tr></thead>
+        <tbody id="gridBody">
+          <tr><td><input value="きらきら星"></td><td><input value="ひなた"></td></tr>
+          <tr><td><input value="となりのトトロ(連弾)"></td><td><input value="ひなた りく"></td></tr>
+          <tr><td><input value="エリーゼのために"></td><td><input value="あおい"></td></tr>
+          <tr><td><input value="アンダー・ザ・シー(連弾)"></td><td><input value="あおい ひなた"></td></tr>
+        </tbody>
+      </table>
+      <button class="addrow" onclick="addGridRow()">＋ 演目を追加</button>
+    </div>
+
+    <div class="settings">
+      <div class="field">
+        <label>掛け持ちの間に<span class="sub"> 最低はさむ組数</span></label>
+        <div class="stepper">
+          <button onclick="bump('gap',-1)">−</button>
+          <input id="gap" value="2" readonly>
+          <button onclick="bump('gap',1)">＋</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>開演時刻<span class="sub"> 任意・時間を入れた時</span></label>
+        <input class="time" id="startTime" type="time" value="14:00">
+      </div>
+    </div>
+
+    <details class="adv" ontoggle="if(this.open) refreshActOptions()">
+      <summary>オープニング・フィナーレ・固定（任意）</summary>
+      <div class="adv-body">
+        <div class="pin">
+          <div class="field">
+            <label>最初（オープニング）にする演目</label>
+            <input list="actOptions" id="firstAct" class="fx-act" placeholder="演目名">
+          </div>
+          <div class="field">
+            <label>最後（フィナーレ）にする演目</label>
+            <input list="actOptions" id="lastAct" class="fx-act" placeholder="演目名">
+          </div>
+        </div>
+        <div class="lab" style="margin-top:14px">特定の演目を◯番目に固定</div>
+        <div id="fixRules">
+          <div class="frule">
+            <input list="actOptions" class="fx-act" placeholder="演目名">
+            を <input type="number" min="1" value="1" class="fx-pos"> 番目に
+            <button class="del" onclick="this.closest('.frule').remove()">×</button>
+          </div>
+        </div>
+        <button class="addrule" onclick="addFixRule()">＋ 固定を追加</button>
+      </div>
+    </details>
+    <datalist id="actOptions"></datalist>
+
+    <button class="run" onclick="run()">出順を組む</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div class="card" id="result">
+    <h2><span class="num" style="border-color:#15803d;color:#15803d">✓</span>出順ができました</h2>
+    <div class="summary" id="summary"></div>
+    <div id="notes"></div>
+    <div class="prog" id="prog"></div>
+    <div class="kakemochi" id="kakemochi"></div>
+
+    <button class="copytable" onclick="copyTable()">📋 プログラムをコピー（スプレッドシート・Word・ドキュメントに貼れる）</button>
+    <div class="share">
+      <button onclick="saveImage()">🖼 画像で保存</button>
+      <button onclick="copyLink()">🔗 リンクをコピー</button>
+      <button class="line" onclick="sendLine()">LINEで送る</button>
+    </div>
+  </div>
+
+  <footer>
+    <span class="nopii">すべてブラウザ内で計算しています。</span>名前は外部に送信・保存されません。<br>
+    発表会・舞台の出演順（出番）づくりツール
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   匿名計測（既定OFF）。ANALYTICS_URL を設定したときだけ
+   個人情報を含まない「件数・分布」のみをビーコン送信する。
+   ＝戦略の肝：次にどのセグメントへ伸ばすかを事実で決める。
+   ========================================================= */
+const ANALYTICS_URL = ""; // 例: Cloudflare Worker / Google Form の formResponse URL
+function track(event, props){
+  if(!ANALYTICS_URL) return;
+  try{
+    const body=JSON.stringify(Object.assign({e:event, ref:location.hostname, t:Date.now()}, props||{}));
+    if(navigator.sendBeacon){ navigator.sendBeacon(ANALYTICS_URL, body); }
+    else{ fetch(ANALYTICS_URL,{method:"POST",body,keepalive:true,mode:"no-cors"}); }
+  }catch(e){}
+}
+
+/* =========================================================
+   正規化・パース（コマ割りの方針を踏襲：汚い入力を飲み込む）
+   「演目名: 出演者…」。末尾の所要時間 [m:ss] (m分) は分離。
+   ========================================================= */
+function normName(s){ return String(s).replace(/\s+/g,"").toUpperCase(); }
+const DISPLAY=new Map(); // normalized -> 表示名（最初に出た表記）
+
+function parseDuration(line){
+  // 末尾の [3:00] (3:00) （3分) [180] などを所要時間（秒）として取り出す
+  let m=line.match(/[\[(（]\s*(\d{1,2})\s*[:：]\s*(\d{1,2})\s*[\])）]\s*$/);
+  if(m) return {sec:(+m[1])*60+(+m[2]), rest:line.slice(0,m.index).trim()};
+  m=line.match(/[\[(（]\s*(\d{1,3})\s*分\s*[\])）]?\s*$/);
+  if(m) return {sec:(+m[1])*60, rest:line.slice(0,m.index).trim()};
+  return {sec:null, rest:line};
+}
+
+function parseActs(text){
+  const acts=[], errors=[]; DISPLAY.clear();
+  text.split(/\r?\n/).forEach(raw=>{
+    let line=raw.trim();
+    if(!line) return;
+    const {sec, rest}=parseDuration(line);
+    line=rest;
+    let name, body;
+    const ci=line.search(/[:：]/);
+    if(ci>=0){ name=line.slice(0,ci).trim(); body=line.slice(ci+1); }
+    else if(line.includes("\t")){ const p=line.split("\t"); name=p[0].trim(); body=p.slice(1).join(" "); }
+    else { name=line.trim(); body=""; } // 出演者なし＝全体合奏など。被り制約には関与しない
+    if(!name) return;
+    const performers=new Set();
+    body.split(/[、,，\t\s]+/).forEach(m=>{ const v=normName(m); if(v){ performers.add(v); if(!DISPLAY.has(v)) DISPLAY.set(v, m.trim()); } });
+    acts.push({name, performers, dur:sec});
+  });
+  return {acts, errors};
+}
+
+function gridToText(){
+  const rows=[...document.querySelectorAll('#gridBody tr')];
+  return rows.map(tr=>{
+    const ins=tr.querySelectorAll('input');
+    const n=(ins[0].value||'').trim(), m=(ins[1].value||'').trim();
+    return n? `${n}: ${m}` : '';
+  }).filter(Boolean).join('\n');
+}
+
+/* =========================================================
+   ソルバー：最小間隔つき並べ替え
+   掛け持ちの人の出演を「間に最低 gap 組」離す。
+   - 既定の候補順＝入力順（先生の意図した並びを最小改変）
+   - 数え上げで不能なら gap を自動で緩め、ボトルネックを報告
+   - gap=0 は常に解ける（＝必ず答えを返す）
+   ========================================================= */
+function hasIntersection(a,b){ if(a.size===0||b.size===0) return false; let [s,l]=a.size<b.size?[a,b]:[b,a]; for(const e of s) if(l.has(e)) return true; return false; }
+
+// 出演者ごとの出演数を数え、最多の人を返す
+function appearanceCounts(acts){
+  const cnt=new Map();
+  for(const a of acts) for(const p of a.performers) cnt.set(p,(cnt.get(p)||0)+1);
+  let maxC=0, who=null;
+  for(const [p,c] of cnt){ if(c>maxC){ maxC=c; who=p; } }
+  return {cnt, maxC, who};
+}
+
+// gap で並べ替えられるか試す。order[] を返す（不能なら null）
+function tryArrange(acts, gap, fixedAtPos, fixedIds, candidateOrder, attemptsMax){
+  const n=acts.length;
+  const order=new Array(n).fill(null);
+  const used=new Array(n).fill(false);     // act.idx 単位
+  const lastPos=new Map();                 // performer -> 直近で置いた位置
+  const attempts={count:0, max:attemptsMax};
+
+  function canPlace(act, p){
+    for(const x of act.performers){ const lp=lastPos.get(x); if(lp!=null && p-lp<=gap) return false; }
+    return true;
+  }
+  function place(act, p){
+    const prev=[];
+    for(const x of act.performers){ prev.push([x, lastPos.has(x)?lastPos.get(x):null]); lastPos.set(x,p); }
+    order[p]=act; used[act.idx]=true; return prev;
+  }
+  function unplace(act, p, prev){
+    for(const [x,v] of prev){ if(v==null) lastPos.delete(x); else lastPos.set(x,v); }
+    order[p]=null; used[act.idx]=false;
+  }
+
+  function dfs(p){
+    if(attempts.count++ > attempts.max) return false;
+    if(p===n) return true;
+    if(fixedAtPos.has(p)){
+      const act=fixedAtPos.get(p);
+      if(!canPlace(act,p)) return false;
+      const prev=place(act,p);
+      if(dfs(p+1)) return true;
+      unplace(act,p,prev);
+      return false;
+    }
+    for(const act of candidateOrder){
+      if(used[act.idx] || fixedIds.has(act.idx)) continue;
+      if(!canPlace(act,p)) continue;
+      const prev=place(act,p);
+      if(dfs(p+1)) return true;
+      unplace(act,p,prev);
+    }
+    return false;
+  }
+  return dfs(0)? order : null;
+}
+
+function solveLineup(acts, opts){
+  opts=opts||{};
+  acts.forEach((a,i)=> a.idx=i);
+  const n=acts.length;
+  if(n===0) return {error:"演目が読み取れませんでした。「演目名: 出演者」の形で入れてください。"};
+
+  // 固定位置の解決
+  const byKey=new Map(); acts.forEach(a=> byKey.set(a.name.toUpperCase(), a));
+  const fixedAtPos=new Map(); const fixedIds=new Set(); const posTaken=new Map();
+  function pin(name, pos, labelForErr){
+    const a=byKey.get(String(name).toUpperCase());
+    if(!a) return `${labelForErr}に、入力にない演目名「${name}」があります。`;
+    if(pos<0||pos>=n) return `「${name}」の位置（${pos+1}番）が演目数（${n}）の範囲外です。`;
+    if(posTaken.has(pos) && posTaken.get(pos)!==a.idx) return `${pos+1}番に複数の演目が指定されています。`;
+    if(fixedIds.has(a.idx) && fixedAtPos.get(pos)!==a) {/* 同一演目を別位置に二重固定 */ }
+    posTaken.set(pos, a.idx); fixedAtPos.set(pos, a); fixedIds.add(a.idx);
+    return null;
+  }
+  let e;
+  if(opts.firstAct){ if(e=pin(opts.firstAct, 0, "オープニング指定")) return {error:e}; }
+  if(opts.lastAct){ if(e=pin(opts.lastAct, n-1, "フィナーレ指定")) return {error:e}; }
+  for(const r of (opts.fixRules||[])){ if(e=pin(r.act, r.pos-1, "固定指定")) return {error:e}; }
+
+  const requested=Math.max(0, opts.gap==null?2:opts.gap);
+  const {maxC, who}=appearanceCounts(acts);
+  // 数え上げの上限：最多出演 c の人は (c-1)*(gap+1) <= n-1 が必要
+  const gapCap = maxC<=1 ? requested : Math.max(0, Math.floor((n-1)/(maxC-1)) - 1);
+  let gapStart = Math.min(requested, gapCap);
+
+  // 候補順：①入力順（意図を保つ）②難しい順（掛け持ち多い演目を先に＝堅牢性）
+  const inOrder=acts.slice();
+  const mrv=acts.slice().sort((a,b)=> b.performers.size - a.performers.size);
+
+  let order=null, gapUsed=0;
+  outer:
+  for(let g=gapStart; g>=0; g--){
+    for(const cand of [inOrder, mrv]){
+      const r=tryArrange(acts, g, fixedAtPos, fixedIds, cand, 600000);
+      if(r){ order=r; gapUsed=g; break outer; }
+    }
+  }
+  if(!order){ // 理論上ここには来ない（gap=0は常に解ける）が保険
+    order=acts.slice(); gapUsed=0;
+    // 固定だけは尊重して素直に並べる
+    const fixedSlots=order.filter(a=>fixedIds.has(a.idx));
+    // フォールバック：入力順そのまま
+  }
+
+  const relaxed = gapUsed < requested;
+  return {
+    order, n, requested, gapUsed, relaxed,
+    bottleneck: relaxed && maxC>1 ? {who:(DISPLAY.get(who)||who), count:maxC} : null,
+    capReason: gapCap < requested
+  };
+}
+
+/* =========================================================
+   結果の組み立て（時間・休憩・掛け持ち検査）
+   ========================================================= */
+function analyze(sol, startSec){
+  const order=sol.order, n=order.length;
+  // 累計時間
+  const anyDur=order.some(a=>a.dur!=null);
+  let clocks=null, total=0;
+  if(anyDur){
+    clocks=[]; let t=startSec!=null?startSec:null, acc=0;
+    for(const a of order){ clocks.push(t!=null? t : null); const d=a.dur||0; if(t!=null) t+=d; acc+=d; }
+    total=acc;
+  }
+  // 休憩の目安（合計が長いとき、半分を超えた直後）
+  let intermissionAfter=null;
+  if(anyDur && total>=60*60){
+    let acc=0; for(let i=0;i<n;i++){ acc+=order[i].dur||0; if(acc>=total/2){ intermissionAfter=i; break; } }
+  }
+  // 掛け持ち：各出演者の出演位置（1始まり）と、要求間隔を満たせなかった箇所
+  const pos=new Map();
+  order.forEach((a,i)=> a.performers.forEach(x=>{ if(!pos.has(x)) pos.set(x,[]); pos.get(x).push(i); }));
+  const kake=[]; const tightPerformers=new Set();
+  for(const [x,ps] of pos){
+    if(ps.length<2) continue;
+    let tight=false;
+    for(let i=1;i<ps.length;i++){ if(ps[i]-ps[i-1]-1 < sol.requested){ tight=true; tightPerformers.add(x); } }
+    kake.push({who:(DISPLAY.get(x)||x), positions:ps.map(p=>p+1), tight});
+  }
+  kake.sort((a,b)=> b.positions.length-a.positions.length || a.positions[0]-b.positions[0]);
+  return {clocks, total, anyDur, intermissionAfter, kake, tightCount:tightPerformers.size};
+}
+
+/* =========================================================
+   描画
+   ========================================================= */
+const PALETTE=[
+  ["#fdeef3","#be185d"],["#eef0fb","#4338ca"],["#e9f7f0","#047857"],["#fdf3e7","#b45309"],
+  ["#eaf4fc","#0369a1"],["#f3eefb","#6d28d9"],["#fdeeee","#b91c1c"],["#e6f6f4","#0f766e"]
+];
+function colorFor(name){ let h=0; for(const c of name) h=(h*31+c.charCodeAt(0))>>>0; return PALETTE[h%PALETTE.length]; }
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function fmtClock(sec){ sec=((sec%86400)+86400)%86400; const h=Math.floor(sec/3600), m=Math.floor(sec%3600/60); return h+":"+String(m).padStart(2,"0"); }
+function fmtMin(sec){ return Math.round(sec/60)+"分"; }
+
+let SOL=null, ANA=null;
+
+function renderResult(sol, ana){
+  SOL=sol; ANA=ana;
+  const sum=document.getElementById('summary');
+  const perfCount=new Set(); sol.order.forEach(a=>a.performers.forEach(x=>perfCount.add(x)));
+  let html=`<span><b>${sol.n}演目・${perfCount.size}人</b> の出順を組みました</span>`;
+  if(sol.gapUsed>0) html+=`<span class="ok">掛け持ち 最低${sol.gapUsed}組あけ</span>`;
+  if(ana.tightCount>0) html+=`<span class="warn">早着替え注意 ${ana.tightCount}人</span>`;
+  sum.innerHTML=html;
+
+  // 注記（自動緩和・早着替え注意）
+  let notes='';
+  if(sol.relaxed){
+    notes+=`<div class="note relax">⚠ 希望の「${sol.requested}組あけ」は`+
+      (sol.bottleneck? `<b>${escapeHtml(sol.bottleneck.who)}</b>さんが${sol.bottleneck.count}演目に出演するため`:'演目数の都合で')+
+      `達成できず、<b>${sol.gapUsed}組あけ</b>で組みました。出演を分けるか演目を増やすと間隔を広げられます。</div>`;
+  }
+  if(ana.tightCount>0){
+    notes+=`<div class="note cushion">👗 早着替えが厳しい人がいます（下の掛け持ち一覧で <span style="color:#b45309">オレンジ</span>）。順番の微調整や着替え係の手配を。</div>`;
+  }
+  document.getElementById('notes').innerHTML=notes;
+
+  // プログラム本体
+  const prog=document.getElementById('prog');
+  let rows='';
+  sol.order.forEach((a,i)=>{
+    const chips=[...a.performers].map(x=>{
+      const [bg,fg]=colorFor(x); const multi=(ANA.kake.find(k=>normName(k.who)===x)&&ANA.kake.find(k=>normName(k.who)===x).positions.length>1);
+      return `<span class="chip${multi?' multi':''}" style="background:${bg};color:${fg}">${escapeHtml(DISPLAY.get(x)||x)}</span>`;
+    }).join('');
+    const clock = ana.anyDur && ana.clocks[i]!=null ? `<div class="clock">${fmtClock(ana.clocks[i])}</div>` : '';
+    rows+=`<div class="row"><div class="no">${i+1}</div><div class="body"><div class="actname">${escapeHtml(a.name)}</div>${chips?`<div class="perf">${chips}</div>`:''}</div>${clock}</div>`;
+    if(ana.intermissionAfter===i) rows+=`<div class="interm">― 休憩 ―</div>`;
+  });
+  prog.innerHTML=rows;
+
+  // 掛け持ち一覧
+  const km=document.getElementById('kakemochi');
+  if(ANA.kake.length){
+    km.style.display='block';
+    km.innerHTML=`<h3>掛け持ちの人（${ANA.kake.length}人）</h3>`+ANA.kake.map(k=>
+      `<div class="km"><span class="who">${escapeHtml(k.who)}</span> <span class="seq ${k.tight?'tight':''}">${k.positions.join(' → ')}番</span>${k.tight?' <span class="tight">⚠早着替え</span>':''}</div>`
+    ).join('');
+  } else { km.style.display='none'; km.innerHTML=''; }
+
+  const r=document.getElementById('result');
+  r.style.display='block';
+  r.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* =========================================================
+   実行
+   ========================================================= */
+function run(){
+  const err=document.getElementById('err'); err.style.display='none';
+  const text = isGrid() ? gridToText() : document.getElementById('paste').value;
+  const {acts, errors}=parseActs(text);
+  if(errors.length){ showErr(errors.join(' / ')); return; }
+  if(acts.length===0){ showErr('演目が読み取れませんでした。「演目名: 出演者」の形で入れてください。'); return; }
+
+  const gap=parseInt(document.getElementById('gap').value,10)||0;
+  const firstAct=(document.getElementById('firstAct').value||'').trim();
+  const lastAct=(document.getElementById('lastAct').value||'').trim();
+  const fixRules=[...document.querySelectorAll('#fixRules .frule')].map(r=>({
+    act:(r.querySelector('.fx-act').value||'').trim(),
+    pos:parseInt(r.querySelector('.fx-pos').value,10)
+  })).filter(r=>r.act && r.pos>=1);
+
+  const sol=solveLineup(acts, {gap, firstAct, lastAct, fixRules});
+  if(sol.error){ showErr(sol.error); return; }
+
+  const st=document.getElementById('startTime').value;
+  let startSec=null; if(st){ const [h,m]=st.split(':').map(Number); if(!isNaN(h)) startSec=h*3600+(m||0)*60; }
+  const ana=analyze(sol, startSec);
+  renderResult(sol, ana);
+
+  track('solve', {n:sol.n, perf:new Set([].concat(...acts.map(a=>[...a.performers]))).size,
+    maxAppear: Math.max(0,...ANA_counts(acts)), gap, gapUsed:sol.gapUsed, relaxed:sol.relaxed?1:0,
+    fixed:(firstAct?1:0)+(lastAct?1:0)+fixRules.length, dur:ana.anyDur?1:0});
+}
+function ANA_counts(acts){ const m={}; acts.forEach(a=>a.performers.forEach(x=>m[x]=(m[x]||0)+1)); return Object.values(m); }
+function showErr(m){ const e=document.getElementById('err'); e.textContent='⚠ '+m; e.style.display='block'; }
+
+/* =========================================================
+   出力（表コピー・画像・共有）
+   ========================================================= */
+function buildTable(){
+  const head=['番号','演目', '出演者'];
+  if(ANA.anyDur) head.push('開始');
+  const rows=[head];
+  SOL.order.forEach((a,i)=>{
+    const perf=[...a.performers].map(x=>DISPLAY.get(x)||x).join('・');
+    const r=[String(i+1), a.name, perf];
+    if(ANA.anyDur) r.push(ANA.clocks[i]!=null? fmtClock(ANA.clocks[i]) : '');
+    rows.push(r);
+    if(ANA.intermissionAfter===i) rows.push(['','― 休憩 ―','', ...(ANA.anyDur?['']:[])]);
+  });
+  return rows;
+}
+async function copyTable(){
+  if(!SOL) return;
+  const rows=buildTable();
+  const tsv=rows.map(r=>r.join('\t')).join('\n');
+  const html='<table border="1" style="border-collapse:collapse;font-family:sans-serif">'+
+    rows.map((r,ri)=>'<tr>'+r.map(c=>{
+      const tag=ri===0?'th':'td';
+      return `<${tag} style="padding:5px 10px">${escapeHtml(c)}</${tag}>`;
+    }).join('')+'</tr>').join('')+'</table>';
+  try{
+    await navigator.clipboard.write([new ClipboardItem({
+      'text/html': new Blob([html],{type:'text/html'}),
+      'text/plain': new Blob([tsv],{type:'text/plain'})
+    })]);
+    toast('プログラムをコピー！スプレッドシート・Word・ドキュメントに貼れます');
+  }catch(e){
+    try{ await navigator.clipboard.writeText(tsv); toast('プログラム（テキスト）をコピーしました'); }
+    catch(_){ toast('コピーに失敗しました'); }
+  }
+  track('copy_table',{n:SOL.n});
+}
+
+function drawCanvas(){
+  const order=SOL.order, n=order.length;
+  const dpr=2, pad=28, W=560, rowH=52, headH=66;
+  const H=pad*2+headH+n*rowH+(ANA.intermissionAfter!=null?28:0);
+  const cv=document.createElement('canvas'); cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+  const FAM='"Hiragino Sans","Noto Sans JP",sans-serif';
+  ctx.textBaseline='middle';
+  ctx.fillStyle='#16161a'; ctx.font='bold 21px '+FAM; ctx.textAlign='left';
+  ctx.fillText('発表会プログラム', pad, pad+12);
+  ctx.fillStyle='#8a8a94'; ctx.font='600 12px '+FAM;
+  ctx.fillText(`${n}演目${ANA.total?'・約'+fmtMin(ANA.total):''}`, pad, pad+34);
+  ctx.strokeStyle='#ececf0'; ctx.beginPath(); ctx.moveTo(pad,pad+headH-12); ctx.lineTo(W-pad,pad+headH-12); ctx.stroke();
+
+  let y=pad+headH+rowH/2;
+  for(let i=0;i<n;i++){
+    const a=order[i];
+    ctx.fillStyle='#e0457b'; ctx.font='bold 16px '+FAM; ctx.textAlign='right';
+    ctx.fillText(String(i+1), pad+22, y);
+    ctx.fillStyle='#16161a'; ctx.font='bold 14px '+FAM; ctx.textAlign='left';
+    wrapText(ctx, a.name, pad+36, y-9, W-pad*2-130);
+    ctx.fillStyle='#8a8a94'; ctx.font='12px '+FAM;
+    const perf=[...a.performers].map(x=>DISPLAY.get(x)||x).join('・');
+    wrapText(ctx, perf, pad+36, y+9, W-pad*2-130);
+    if(ANA.anyDur && ANA.clocks[i]!=null){ ctx.fillStyle='#b0b0ba'; ctx.font='bold 12px '+FAM; ctx.textAlign='right'; ctx.fillText(fmtClock(ANA.clocks[i]), W-pad, y); }
+    ctx.strokeStyle='#f1f1f4'; ctx.beginPath(); ctx.moveTo(pad,y+rowH/2); ctx.lineTo(W-pad,y+rowH/2); ctx.stroke();
+    y+=rowH;
+    if(ANA.intermissionAfter===i){ ctx.fillStyle='#8a8a94'; ctx.font='bold 12px '+FAM; ctx.textAlign='center'; ctx.fillText('― 休憩 ―', W/2, y); y+=28; }
+  }
+  return cv;
+}
+function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function wrapText(ctx,text,x,y,maxW){ if(ctx.measureText(text).width<=maxW){ ctx.fillText(text,x,y); return; } let t=text; while(t.length>1 && ctx.measureText(t+'…').width>maxW) t=t.slice(0,-1); ctx.fillText(t+'…',x,y); }
+function saveImage(){
+  if(!SOL) return;
+  drawCanvas().toBlob(b=>{
+    const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='発表会プログラム.png'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    toast('画像を保存しました');
+  });
+  track('save_image',{n:SOL.n});
+}
+
+function buildShareURL(){
+  const payload={t:document.getElementById('paste').value, g:document.getElementById('gap').value, s:document.getElementById('startTime').value};
+  return location.origin+location.pathname+'#d='+encodeURIComponent(JSON.stringify(payload));
+}
+async function copyLink(){
+  try{ await navigator.clipboard.writeText(buildShareURL()); toast('リンクをコピー！グループに貼って共有できます'); }
+  catch(e){ toast('コピーに失敗しました'); }
+  track('copy_link',{});
+}
+async function sendLine(){
+  const url=buildShareURL();
+  const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if(isMobile && navigator.share){
+    try{ await navigator.share({title:'発表会の出順', text:'発表会の出順できた🎶', url}); track('share_line',{m:1}); return; }
+    catch(e){ if(e && e.name==='AbortError') return; }
+  }
+  window.open('https://social-plugins.line.me/lineit/share?url='+encodeURIComponent(url),'_blank','noopener,width=560,height=640');
+  track('share_line',{m:0});
+}
+
+/* =========================================================
+   UI 補助
+   ========================================================= */
+function isGrid(){ return document.getElementById('tabGrid').classList.contains('on'); }
+function switchTab(which){
+  document.getElementById('tabPaste').classList.toggle('on',which==='paste');
+  document.getElementById('tabGrid').classList.toggle('on',which==='grid');
+  document.getElementById('paste').style.display = which==='paste'?'block':'none';
+  document.getElementById('gridIn').style.display = which==='grid'?'block':'none';
+}
+function bump(id,d){ const el=document.getElementById(id); el.value=Math.max(0,parseInt(el.value,10)+d); }
+function addGridRow(){
+  const tr=document.createElement('tr');
+  tr.innerHTML='<td><input placeholder="演目名"></td><td><input placeholder="出演者"></td>';
+  document.getElementById('gridBody').appendChild(tr);
+}
+function refreshActOptions(){
+  const text=isGrid()? gridToText() : document.getElementById('paste').value;
+  const {acts}=parseActs(text);
+  document.getElementById('actOptions').innerHTML=acts.map(a=>`<option value="${escapeHtml(a.name)}"></option>`).join('');
+}
+function addFixRule(){
+  const div=document.createElement('div');
+  div.className='frule';
+  div.innerHTML='<input list="actOptions" class="fx-act" placeholder="演目名"> を <input type="number" min="1" value="1" class="fx-pos"> 番目に <button class="del" onclick="this.closest(\'.frule\').remove()">×</button>';
+  document.getElementById('fixRules').appendChild(div);
+}
+let toastTimer=null;
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2600); }
+
+/* 共有リンクから復元 */
+(function restore(){
+  if(location.hash.startsWith('#d=')){
+    try{
+      const p=JSON.parse(decodeURIComponent(location.hash.slice(3)));
+      if(p.t) document.getElementById('paste').value=p.t;
+      if(p.g) document.getElementById('gap').value=p.g;
+      if(p.s) document.getElementById('startTime').value=p.s;
+      run();
+    }catch(e){}
+  }
+})();
+refreshActOptions();
+track('open',{});
+</script>
+</body>
+</html>
